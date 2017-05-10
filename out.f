@@ -1,10 +1,10 @@
-      subroutine out(t,Nx,Ny,gamma,ro,beta)
+      subroutine out(t,Nx,Ny,Nc,gamma,ro,cells)
 
       implicit none
 
       double precision t
-      integer Nx, Ny, i, j, jj
-      
+      integer Nx, Ny, Nc,i, j
+
       double precision dL1,dL2,dk,dc,dalpha,depsilon,depsilonp,
      .               dlambda1,dlambda2,s1,s2,vd,tend,tout,dt,tE,
      .               dx,dy,tol,isf,itstart,pi,amplit,prob
@@ -17,66 +17,62 @@
 
       common /param/ gamma01,beta01,ro01,Diffgamma,dke0,dk1,dsigma0
 
-      double precision gamma(Nx,Ny),ro(Nx,Ny), beta(Nx,Ny)
-      double precision dls, meangamma
+      double precision gamma(Nx,Ny),ro(Nx,Ny)
+      double precision cells(Nc,6)
+      integer grid (Nx,Ny)
 
+      call FromCellToGrid(Nx,Ny,Nc,cells,grid)
 
-      if (Ny .gt. 1) then
-        j=Ny/2
-      else
-        j=1
-      endif
-
-      dls=dk1/(dke0*Diffgamma)**0.5
-
-      do i=1,Nx
-        meangamma=0.d0
-        do jj=1,Ny
-        meangamma=meangamma+gamma(i,jj)
+        do j=1,Ny
+            do i=1,Nx
+            write(10,*) t/dk1,gamma(i,j),ro(i,j),grid(i,j)
+            enddo
         enddo
-        meangamma=meangamma/Ny
-      write(10,*) t/dk1,i*dx/dls,gamma(i,j),ro(i,j),meangamma
-
-      enddo
 
       write(10,*)
       return
       end
 
 
-
-
-
 !     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      subroutine outFinal(t,Nx,Ny,gamma,ro,beta,TS)
+      subroutine outFinal(t,Nx,Ny,Nc,gamma,ro,cells)
 
       implicit none
-      integer Nx,Ny, i, j
+      integer Nx,Ny, Nc, i, j
       double precision t
 
       double precision gamma01,beta01,ro01,Diffgamma,dke0,dk1,dsigma0
 
       common /param/ gamma01,beta01,ro01,Diffgamma,dke0,dk1,dsigma0
 
-      double precision gamma(Nx,Ny),ro(Nx,Ny),beta(Nx,Ny),TS(Nx,Ny)
+      double precision gamma(Nx,Ny),ro(Nx,Ny)
+      double precision cells(Nc,6)
 
 
 
       do i=1,Nx
         do j=1,Ny
-            write(42,*) t/dk1,gamma(i,j),ro(i,j),beta(i,j),TS(i,j)
+            write(42,*) t/dk1,gamma(i,j),ro(i,j)
         enddo
       enddo
       write(42,*)
+
+
+      do i=1,Nc
+        write(43,*) cells(i,1), cells(i,2)
+      enddo
+      write(43,*)
+
+
       return
       end
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      subroutine loadState(t,Nx,Ny,beta,gamma,ro,TS)
+      subroutine loadState(t,Nx,Ny,Nc,gamma,ro,cells)
 
       implicit none
 
-      integer Nx,Ny, i, j
+      integer Nx,Ny, Nc, i, j
       double precision t, aux
 
       double precision gamma01,beta01,ro01,Diffgamma,dke0,dk1,dsigma0
@@ -84,16 +80,23 @@
       common /param/ gamma01,beta01,ro01,Diffgamma,dke0,dk1,dsigma0
 
 
-      double precision gamma(Nx,Ny),ro(Nx,Ny), beta(Nx,Ny), TS(Nx,Ny)
-
+      double precision gamma(Nx,Ny),ro(Nx,Ny)
+      double precision cells(Nc,6)
 
       do i=1,Nx
         do j=1,Ny
-            read(7,*) aux,gamma(i,j),ro(i,j),beta(i,j),TS(i,j)
+            read(7,*) aux,gamma(i,j),ro(i,j)
         enddo
       enddo
       close(7)
       t=aux*dk1
+
+      do i=1,Nc
+        read(8,*) cells(i,1), cells(i,2)
+      enddo
+      close(8)
+
+
       return
       end
 

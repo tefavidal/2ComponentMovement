@@ -1,8 +1,8 @@
-      subroutine anfang(t,Nx,Ny,beta,gamma,ro,TS)
+      subroutine anfang(t,Nx,Ny,Nc,gamma,ro,cells)
       
       implicit none
 
-      integer Nx,Ny
+      integer Nx,Ny, Nc
       double precision t
 
       double precision dL1,dL2,dk,dc,dalpha,depsilon,depsilonp,
@@ -16,9 +16,10 @@
       double precision gamma01,beta01,ro01,Diffgamma,dke0,dk1,dsigma0
       common /param/ gamma01,beta01,ro01,Diffgamma,dke0,dk1,dsigma0
 
-      double precision beta(Nx,Ny),gamma(Nx,Ny),ro(Nx,Ny),TS(Nx,Ny)
+      double precision gamma(Nx,Ny),ro(Nx,Ny)
       double precision dh,tEprime,dk2,dki,dkt,dq,depsilono,dlambda
       double precision dtheta,Vmax,tendprime,toutprime,dtprime
+      double precision cells(Nc,6)
 
       open(8,file = 'startdata',status = 'unknown', form = 'formatted')
 
@@ -61,27 +62,32 @@
       write(6,*) 'depsilonp=',depsilonp
       write(6,*) 'vd=',vd,'dt=',dt,'tend=',tend,'tE=',tE
 
-      write(6,*) 'dimensionless xlength=',75*dk1/(dke0*Diffgamma)**0.5
-      write(6,*) 'dimensionless ylength=',2*dk1/(dke0*Diffgamma)**0.5
-!      dx=20.d0/Nx*dk1/(dke0*Diffgamma)**0.5
-!      dy=dx
-       dx=0.1*dk1/(dke0*Diffgamma)**0.5
-       dy=0.025*dk1/(dke0*Diffgamma)**0.5
+       dx=0.05*dk1/(dke0*Diffgamma)**0.5
+       dy=0.05*dk1/(dke0*Diffgamma)**0.5
 
       write(6,*)'dimensionless dx=', dx
       write(6,*)'dimensionless dy=', dy
 
+!     %%%%% Optional load of initial conditions %%%%%%%%%%
+
       open(7,file = 'OutputData2D/Initial-State', err = 20,
      .       status = 'old', form = 'formatted')
 
-      call loadState(t,Nx,Ny,beta,gamma,ro,TS)
+      open(8,file = 'OutputData2D/Initial-Positions', err = 20,
+     .       status = 'old', form = 'formatted')
+
+      call loadState(t,Nx,Ny,Nc,gamma,ro,cells)
       tE=0
       tend=tend+t
       go to 10
 
- 20   call ic(t,Nx,Ny,beta,gamma,ro)
+!     %%%%% Random positions one cell per grid point %%%%%%%%%%
 
-      call StartingTime(t,Nx,Ny,TS)
+ 20   call initialDiscreteDistribution(Nx,Ny,Nc,cells)
+      call ic(t,Nx,Ny,Nc,gamma,ro,cells)
+
+
+!      call StartingTime(t,Nx,Ny,TS)
 
  10   return
       
