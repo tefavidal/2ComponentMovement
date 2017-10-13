@@ -147,7 +147,7 @@
 
        do i=1,Nc
                 call random_number(aux)
-                if (aux .lt. 0.1) then
+                if (aux .lt. 0.001) then
                     cells(i,3)=1.0
                 else
                     cells(i,3)=0.0
